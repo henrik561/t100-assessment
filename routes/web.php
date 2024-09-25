@@ -1,7 +1,9 @@
 <?php
 
+use App\Services\CompensationReportService;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $compensationReportService = new CompensationReportService();
+    return $compensationReportService->generateReport();
 });
