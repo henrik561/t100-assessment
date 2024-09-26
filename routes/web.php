@@ -1,9 +1,6 @@
 <?php
 
-use App\Services\CompensationReportService;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CompensationReportController;
 
-Route::get('/', function () {
-    $compensationReportService = new CompensationReportService();
-    return $compensationReportService->generateReport();
-});
+Route::get('/', [CompensationReportController::class, 'generateReport']);
