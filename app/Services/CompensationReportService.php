@@ -18,11 +18,11 @@ class CompensationReportService
     /**
      * Generate the compensation report grouped by year and month.
      */
-    public function generateReport(): array
+    public function generateReport()
     {
         $employees = Employee::all();
 
-        return collect(range(1, 12))->mapWithKeys(function ($month) use ($employees, &$report) {
+        return collect(range(1, 12))->mapWithKeys(function ($month) use ($employees) {
             return [$month => $this->calculateMonthlyCompensation($employees, $month)];
         })->toArray();
     }
@@ -32,13 +32,10 @@ class CompensationReportService
      */
     private function calculateMonthlyCompensation($employees, $month)
     {
-        $currentMonth = Carbon::createFromDate($this->currentYear, $month, 1);
-
-        return $employees->map(function ($employee) use ($currentMonth) {
+        return $employees->map(function ($employee) use ($month) {
             return [
                 'name' => $employee->name,
-                'transportation_method' => $employee->transportation_method,
-                'compensation' => $this->calculateEmployeeCompensation($employee, $currentMonth),
+                'compensation' => $this->calculateEmployeeCompensation($employee, $month),
             ];
         });
     }
@@ -48,18 +45,9 @@ class CompensationReportService
      */
     private function calculateEmployeeCompensation(Employee $employee, $currentMonth)
     {
-        $weeksInMonth = $currentMonth->weeksInMonth;
-
-        return collect(range(1, $weeksInMonth))->map(function ($week) use ($employee) {
-            return $this->calculateEmployeeCompensationForWeek($employee);
-        });
-    }
-
-    private function calculateEmployeeCompensationForWeek(Employee $employee)
-    {
+        $employeeWorkingDays = $this->getWorkingDaysInMonth($currentMonth);
         $distancePerDay = $employee->distance * 2; // Round trip distance
         $totalCompensation = 0;
-        $employeeWorkingDays = $employee->getWorkingDaysPerWeek();
 
         switch ($employee->transportation_method) {
             case TransportationMethods::BIKE:
@@ -116,5 +104,14 @@ class CompensationReportService
         }
 
         return $totalCompensation;
+    }
+
+    private function getWorkingDaysInMonth($month)
+    {
+        $date = Carbon::now()->setMonth($month)->startOfMonth();
+
+        return collect(range(1, $date->daysInMonth))->map(function ($day) use ($date) {
+            return $date->clone()->setDay($day)->isWeekend() ? 0 : 1;
+        })->sum();
     }
 }
