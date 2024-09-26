@@ -18,7 +18,7 @@ return new class extends Migration
             // cant seem to fix TransportationMethods::toArray() or ::cases(), this returns an empty array for some reason, so a manual array is used instead // TODO: optimize this
             $table->enum('transportation_method', [TransportationMethods::BIKE, TransportationMethods::CAR, TransportationMethods::BUS, TransportationMethods::TRAIN]);
             $table->integer('distance');
-            $table->integer('workdays_per_week');
+            $table->float('workdays_per_week');
             $table->timestamps();
         });
     }
